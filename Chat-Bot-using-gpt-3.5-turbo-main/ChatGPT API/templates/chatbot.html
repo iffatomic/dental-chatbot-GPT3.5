@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Chatbot Interface</title>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="Logo" class="logo">
+            <h1>Dental Health Chatbot</h1>
+        </div>
+    </div>
+    
+    <div class="container">
+        
+        <!-- Use a separate div for initial prompt -->
+        <div id="greetings-container" class="greetings-container">
+            <div id="initial-prompt" class="initial-prompt">
+                {% if initial_prompt %}
+                    {{ initial_prompt }}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Use a wrapper div for chat-display and set a class -->
+        <div id="chat-wrapper" class="chat-wrapper">
+            <div id="chat-display" class="chat-display">
+                <!-- Chat messages will be added here dynamically -->
+                {% for message in chat_messages %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Add the buttons above the user input -->
+        <div class="common-prompts">
+            <button onclick="sendCommonPrompt('How often should I brush and floss?')">How often should I brush and floss?</button>
+            <button onclick="sendCommonPrompt('How can I manage tooth pain or discomfort at home?')">How can I manage tooth pain or discomfort at home?</button>
+            <button onclick="sendCommonPrompt('How can I prevent cavities and gum disease?')">How can I prevent cavities and gum disease?</button>
+        </div>
+
+        <!-- Add a space between the user-input and buttons -->
+        <div class="user-input">
+            <input type="text" id="user-input" placeholder="Type your message..." onkeydown="sendMessage(event)">
+            <button onclick="sendMessage(event)">Send</button>
+            <button onclick="clearChat()">Clear Chat</button>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2023 Dental Health Chatbot</p>
+    </div>
+
+    <script>
+    function sendMessage(event) {
+    // Check if the event is a click or a keydown event
+    if (event.type === 'click' || (event.type === 'keydown' && event.key === 'Enter')) {
+        var userInput = document.getElementById('user-input').value.trim(); // Trim to remove leading/trailing whitespaces
+
+        // Check if the userInput is empty
+        if (!userInput) {
+            return;
+        }
+
+        // Display the user message
+        document.getElementById('chat-display').innerHTML += '<div class="message user-message"><strong>You:</strong> ' + userInput + '</div>';
+        document.getElementById('user-input').value = '';
+
+        // Display the typing indicator
+        showTypingIndicator();
+
+        // Simulate processing time (replace with your actual logic)
+        setTimeout(function () {
+            // AJAX request to send user input to the server and get chatbot response
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/send_message', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    var chatbotResponse = JSON.parse(xhr.responseText);
+
+                    // Remove the typing indicator
+                    hideTypingIndicator();
+
+                    // Add the chatbot response message
+                    document.getElementById('chat-display').innerHTML += '<div class="message chatbot-message"><strong>Chatbot:</strong> ' + chatbotResponse.response + '</div>';
+                    scrollToBottom();
+                }
+            };
+            xhr.send(JSON.stringify({ user_input: userInput }));
+        }, 1000); // Adjust the timeout duration as needed
+    }
+}
+
+        function sendCommonPrompt(prompt) {
+                // Display the user message
+                document.getElementById('chat-display').innerHTML += '<div class="message user-message"><strong>You:</strong> ' + prompt + '</div>';
+                document.getElementById('user-input').value = '';
+
+                // Display the typing indicator
+                showTypingIndicator();
+
+                // Simulate processing time (replace with your actual logic)
+                setTimeout(function () {
+                    // AJAX request to send user input to the server and get chatbot response
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/send_message', true);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState == 4 && xhr.status == 200) {
+                            var chatbotResponse = JSON.parse(xhr.responseText);
+
+                            // Remove the typing indicator
+                            hideTypingIndicator();
+
+                            // Add the chatbot response message
+                            document.getElementById('chat-display').innerHTML += '<div class="message chatbot-message"><strong>Chatbot:</strong> ' + chatbotResponse.response + '</div>';
+                            scrollToBottom();
+                        }
+                    };
+                    xhr.send(JSON.stringify({ user_input: prompt }));
+                }, 1000); // Adjust the timeout duration as needed
+            }
+
+        // Function to display the typing indicator
+        function showTypingIndicator() {
+            document.getElementById('chat-display').innerHTML += '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+            scrollToBottom();
+        }
+
+        // Function to hide the typing indicator
+        function hideTypingIndicator() {
+            var typingIndicator = document.querySelector('.typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+                function clearChat() {
+            // Clear only the chat-display content
+            document.getElementById('chat-display').innerHTML = '';
+            
+            // Optional: You can also clear the user-input field
+            document.getElementById('user-input').value = '';
+        }
+    
+        // Function to scroll to the bottom of the chat display
+        function scrollToBottom() {
+            var chatDisplay = document.getElementById('chat-display');
+            chatDisplay.scrollTop = chatDisplay.scrollHeight;
+        }
+    
+        // Listen for the "keydown" event on the input field
+        document.getElementById('user-input').addEventListener('keydown', function (event) {
+            // Check if the pressed key is the Enter key (keyCode 13)
+            if (event.keyCode === 13) {
+                sendMessage(); // Call the sendMessage function when Enter is pressed
+            }
+        });
+    </script>
+    
+    
+</body>
+</html>
